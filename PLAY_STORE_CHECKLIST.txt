@@ -1,0 +1,27 @@
+METRO DASH RUNNER — PLAY STORE CHECKLIST
+
+Current package:
+com.metro.dashrunner
+Version: 1.0.0 (versionCode 1)
+Target SDK: 35
+
+Included:
+- Android WebView app wrapper
+- Portrait orientation
+- Fullscreen gameplay
+- Launcher icon
+- Offline game
+- Local best score
+- Privacy policy draft
+
+Before publishing:
+1. Replace the placeholder privacy-policy email.
+2. Create a Google Play Console developer account.
+3. Build a signed Android App Bundle (.aab).
+4. Upload the AAB to Play Console.
+5. Add store icon, feature graphic and screenshots.
+6. Complete Data safety and content declarations accurately.
+7. Test the release on real Android phones.
+8. Submit for review.
+
+Important: I cannot access or sign into your Google Play Console account. The final upload/release must be done from your developer account.

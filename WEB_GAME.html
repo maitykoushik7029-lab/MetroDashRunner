@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Metro Dash Runner</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;touch-action:none;font-family:Arial,sans-serif}
+canvas{display:block;width:100vw;height:100vh}
+#ui{position:fixed;inset:0;pointer-events:none;color:#fff;text-shadow:0 2px 3px #000}
+#score{position:absolute;top:18px;left:16px;font-size:22px;font-weight:800}
+#best{position:absolute;top:49px;left:16px;font-size:15px}
+#msg{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);text-align:center;font-size:31px;font-weight:900;display:none}
+#msg small{display:block;font-size:16px;margin-top:10px}
+#hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:14px;opacity:.9;text-align:center;white-space:nowrap}
+</style></head><body>
+<canvas id="game"></canvas><div id="ui"><div id="score">Score: 0</div><div id="best">Best: 0</div><div id="msg"></div><div id="hint">SWIPE ← →  LANE &nbsp; • &nbsp; SWIPE ↑  JUMP</div></div>
+<script>
+const c=document.getElementById('game'),x=c.getContext('2d');let W,H,dpr;
+function rs(){dpr=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',rs);rs();
+const S=document.getElementById('score'),B=document.getElementById('best'),M=document.getElementById('msg'),hint=document.getElementById('hint');
+let best=+localStorage.mdrBest||0,state='ready',score=0,speed=7,spawnT=0,last=0,obs=[],p={lane:1,y:0,vy:0};
+const lx=l=>W/2+(l-1)*Math.min(W*.22,120), ry=z=>H*.52+z*H*.5;
+function reset(){score=0;speed=7;spawnT=.2;obs=[];p={lane:1,y:0,vy:0}}
+function start(){reset();state='run';M.style.display='none';hint.style.display='block'}
+function over(){state='over';best=Math.max(best,Math.floor(score));localStorage.mdrBest=best;B.textContent='Best: '+best;M.innerHTML='GAME OVER<small>Tap to play again</small>';M.style.display='block'}
+function jump(){if(p.y===0){p.vy=13}}
+function spawn(){obs.push({lane:Math.floor(Math.random()*3),z:0,type:Math.random()<.25?'coin':'block'})}
+function up(dt){if(state!=='run')return;score+=dt*10;speed+=dt*.12;spawnT-=dt;if(spawnT<=0){spawn();spawnT=Math.max(.34,1-speed/25)}
+p.y+=p.vy*dt;p.vy-=32*dt;if(p.y<=0){p.y=0;p.vy=0}
+for(const o of obs)o.z+=speed*dt/80;
+for(const o of obs)if(o.z>.86&&o.z<.99&&o.lane===p.lane&&p.y<1.15){if(o.type==='block'){over();return}o.got=true;score+=50}
+obs=obs.filter(o=>o.z<1.05&&!o.got);S.textContent='Score: '+Math.floor(score)}
+function draw(){
+x.clearRect(0,0,W,H);x.fillStyle='#76c9ff';x.fillRect(0,0,W,H*.52);x.fillStyle='#82bd5f';x.fillRect(0,H*.52,W,H*.48);
+x.fillStyle='#555';x.beginPath();x.moveTo(W*.18,H);x.lineTo(W*.37,H*.52);x.lineTo(W*.63,H*.52);x.lineTo(W*.82,H);x.closePath();x.fill();
+for(let l=0;l<3;l++){x.strokeStyle='#ddd';x.lineWidth=5;x.beginPath();x.moveTo(lx(l),H);x.lineTo(lx(l),H*.52);x.stroke()}
+for(let i=0;i<14;i++){let z=i/14,y=ry(z),h=W*.32*z;x.strokeStyle='#333';x.lineWidth=5;x.beginPath();x.moveTo(W/2-h,y);x.lineTo(W/2+h,y);x.stroke()}
+obs.slice().sort((a,b)=>a.z-b.z).forEach(o=>{let q=.25+o.z*1.9,xx=lx(o.lane),yy=ry(o.z);if(o.type==='coin'){x.fillStyle='#ffd22e';x.beginPath();x.arc(xx,yy-35*q,15*q,0,7);x.fill()}else{x.fillStyle='#e34b3f';x.fillRect(xx-24*q,yy-55*q,48*q,55*q);x.fillStyle='#ffb52e';x.fillRect(xx-18*q,yy-47*q,36*q,10*q)}});
+let px=lx(p.lane),py=H*.88-p.y*55;x.save();x.translate(px,py);x.fillStyle='#1565c0';x.fillRect(-20,-55,40,45);x.fillStyle='#ffd1a4';x.beginPath();x.arc(0,-70,17,0,7);x.fill();x.fillStyle='#222';x.fillRect(-18,-88,36,8);x.fillStyle='#333';x.fillRect(-18,-10,14,10);x.fillRect(4,-10,14,10);x.restore()
+}
+function loop(t){let dt=Math.min(.033,(t-last)/1000||0);last=t;up(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+let sx=0,sy=0;addEventListener('pointerdown',e=>{sx=e.clientX;sy=e.clientY;if(state!=='run'){start()}});addEventListener('pointerup',e=>{if(state!=='run')return;let dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<25){jump();return}if(Math.abs(dx)>Math.abs(dy)){p.lane=Math.max(0,Math.min(2,p.lane+(dx>0?1:-1)))}else if(dy<0)jump()});B.textContent='Best: '+best;
+</script></body></html>
