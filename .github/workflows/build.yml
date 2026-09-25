@@ -30,7 +30,7 @@ jobs:
           ls "$ANDROID_HOME/build-tools" || true
 
       - name: Build Release AAB
-        run: gradle bundleRelease
+        run: gradle assembleRelease
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
