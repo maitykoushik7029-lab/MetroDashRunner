@@ -12,14 +12,14 @@ canvas{display:block;width:100vw;height:100vh}
 #msg small{display:block;font-size:16px;margin-top:10px}
 #hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:14px;opacity:.9;text-align:center;white-space:nowrap}
 </style></head><body>
-<canvas id="game"></canvas><div id="ui"><div id="score">Score: 0</div><div id="best">Best: 0</div><div id="msg"></div><div id="hint">SWIPE ← →  LANE &nbsp; • &nbsp; SWIPE ↑  JUMP</div></div>
+<canvas id="game"></canvas><div id="ui"><div id="score">Score: 0</div><div id="coins">🪙 Coins: 0</div><div id="best">Best: 0</div><div id="msg"></div><div id="hint">SWIPE ← →  LANE &nbsp; • &nbsp; SWIPE ↑  JUMP</div></div>
 <script>
 const c=document.getElementById('game'),x=c.getContext('2d');let W,H,dpr;
 function rs(){dpr=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',rs);rs();
 const S=document.getElementById('score'),B=document.getElementById('best'),M=document.getElementById('msg'),hint=document.getElementById('hint');
-let best=+localStorage.mdrBest||0,state='ready',score=0,speed=7,spawnT=0,last=0,obs=[],p={lane:1,y:0,vy:0};
+let best=+localStorage.mdrBest||0,state='ready',score=0,coins=0,speed=7,spawnT=0,last=0,obs=[],p={lane:1,y:0,vy:0};
 const lx=l=>W/2+(l-1)*Math.min(W*.22,120), ry=z=>H*.52+z*H*.5;
-function reset(){score=0;speed=7;spawnT=.2;obs=[];p={lane:1,y:0,vy:0}}
+function reset(){score=0;coins=0;document.getElementById('coins').textContent='🪙 Coins: 0';speed=7;spawnT=.2;obs=[];p={lane:1,y:0,vy:0}}
 function start(){reset();state='run';M.style.display='none';hint.style.display='block'}
 function over(){state='over';best=Math.max(best,Math.floor(score));localStorage.mdrBest=best;B.textContent='Best: '+best;M.innerHTML='GAME OVER<small>Tap to play again</small>';M.style.display='block'}
 function jump(){if(p.y===0){p.vy=13}}
@@ -27,7 +27,7 @@ function spawn(){obs.push({lane:Math.floor(Math.random()*3),z:0,type:Math.random
 function up(dt){if(state!=='run')return;score+=dt*10;speed+=dt*.12;spawnT-=dt;if(spawnT<=0){spawn();spawnT=Math.max(.34,1-speed/25)}
 p.y+=p.vy*dt;p.vy-=32*dt;if(p.y<=0){p.y=0;p.vy=0}
 for(const o of obs)o.z+=speed*dt/80;
-for(const o of obs)if(o.z>.86&&o.z<.99&&o.lane===p.lane&&p.y<1.15){if(o.type==='block'){over();return}o.got=true;score+=50}
+for(const o of obs)if(o.z>.86&&o.z<.99&&o.lane===p.lane&&p.y<1.15){if(o.type==='block'){over();return}o.got=true;coins++;document.getElementById('coins').textContent='🪙 Coins: '+coins;score+=50}
 obs=obs.filter(o=>o.z<1.05&&!o.got);S.textContent='Score: '+Math.floor(score)}
 function draw(){
 x.clearRect(0,0,W,H);x.fillStyle='#76c9ff';x.fillRect(0,0,W,H*.52);x.fillStyle='#82bd5f';x.fillRect(0,H*.52,W,H*.48);
